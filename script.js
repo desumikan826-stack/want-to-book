@@ -128,6 +128,9 @@ displayBooks();
 
 async function searchBook() {
 
+    console.log("APP_ID =", APP_ID);
+    console.log("URL =", url);
+
     const input = document.getElementById("bookSearch");
 
     if (!input) return;
@@ -138,20 +141,28 @@ async function searchBook() {
 
     try {
 
-        const APP_ID = "1eebfe84-910f-4d7c-978b-a32996e54aa2";
+        const APP_ID = "pk_txpz7V5UM30meBVaFsCWQd3FbSH5zHFcB2XZ2whKdXt";
 
         console.log("APP_ID:", APP_ID);
         console.log("length:", APP_ID.length);
 
+        
+        
         const url =
             "https://app.rakuten.co.jp/services/api/BooksBook/Search/20170404" +
-            "?applicationId=" + APP_ID +
+            "?applicationId=" + encodeURIComponent(APP_ID) +
             "&title=" + encodeURIComponent(keyword) +
             "&format=json";
+
 
         console.log(url);
 
         const response = await fetch(url);
+
+        
+        console.log(response.status);
+        console.log(await response.text());
+
 
         if (!response.ok) {
             const error = await response.json();
@@ -177,6 +188,9 @@ async function searchBook() {
 function displaySearchResult(items) {
 
     const result = document.getElementById("searchResult");
+
+    if (!result) return;
+
     result.innerHTML = "";
 
     items.forEach((item) => {
