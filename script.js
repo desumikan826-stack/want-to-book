@@ -164,19 +164,20 @@ async function searchBook() {
 
         
         console.log(response.status);
-        console.log(await response.text());
 
+
+        
+        const data = await response.json();
 
         if (!response.ok) {
-            const error = await response.json();
-            console.log(error);
-            alert(JSON.stringify(error));
+            console.log(data);
+            alert(JSON.stringify(data));
             return;
         }
 
-        const data = await response.json();
-
         console.log(data);
+
+
 
         alert("検索件数: " + data.Items.length);
 
