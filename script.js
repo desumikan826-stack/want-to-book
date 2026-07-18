@@ -128,8 +128,6 @@ displayBooks();
 
 async function searchBook() {
 
-    console.log("APP_ID =", APP_ID);
-    console.log("URL =", url);
 
     const input = document.getElementById("bookSearch");
 
@@ -153,6 +151,11 @@ async function searchBook() {
             "?applicationId=" + encodeURIComponent(APP_ID) +
             "&title=" + encodeURIComponent(keyword) +
             "&format=json";
+
+        
+        console.log("APP_ID =", APP_ID);
+        console.log("URL =", url);
+
 
 
         console.log(url);
