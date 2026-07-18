@@ -144,8 +144,12 @@ async function searchBook() {
         const ACCESS_KEY = "pk_txpz7V5UM30meBVaFsCWQd3FbSH5zHFcB2XZ2whKdXt";
 
 
-        console.log("APP_ID:", APP_ID);
-        console.log("length:", APP_ID.length);
+        
+        console.log("APPLICATION_ID:", APPLICATION_ID);
+        console.log("length:", APPLICATION_ID.length);
+        
+        console.log("ACCESS_KEY:", ACCESS_KEY);
+        console.log("length:", ACCESS_KEY.length);
 
         
         
