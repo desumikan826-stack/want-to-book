@@ -129,3 +129,30 @@ nav a:hover{
     font-size:28px;
     cursor:pointer;
 }
+
+#stackView{
+    display:flex;
+    flex-direction:column-reverse;
+    align-items:center;
+    margin:30px 0;
+}
+
+.book-stack{
+    width:150px;
+    height:18px;
+    background:#4caf50;
+    border:1px solid #333;
+    margin-top:2px;
+    border-radius:3px;
+}
+
+
+.book-stack{
+    width:160px;
+    height:22px;
+    background:linear-gradient(
+        to right,
+        #e53935,
+        #d32f2f
+    );
+}

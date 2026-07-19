@@ -94,6 +94,32 @@ function displayBooks() {
         }
 
     });
+    
+displayStack();
+
+}
+
+function displayStack() {
+
+    const stackView = document.getElementById("stackView");
+    const stackCount = document.getElementById("stackCount");
+
+    if (!stackView || !stackCount) return;
+
+    stackView.innerHTML = "";
+
+    const unreadBooks = books.filter(book => !book.read);
+
+    unreadBooks.forEach(() => {
+
+        stackView.innerHTML += `
+            <div class="book-stack"></div>
+        `;
+
+    });
+
+    stackCount.textContent =
+        `積読 ${unreadBooks.length}冊`;
 
 }
 
@@ -249,5 +275,7 @@ function addRakutenBook(info) {
 
     saveBooks();
     displayBooks();
+    displayStack();
 }
+
 
