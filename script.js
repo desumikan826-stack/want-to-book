@@ -76,8 +76,14 @@ function displayBooks() {
                 <p>著者：${book.author}</p>
 
                 <p>
-                    評価：${"★".repeat(book.rating)}${"☆".repeat(5 - book.rating)}
-                    <button onclick="changeRating(${index})">評価変更</button>
+                    評価：
+                    ${[1,2,3,4,5].map(star => `
+                        <span
+                        onclick="changeRating(${index}, ${star})"
+                        style="cursor:pointer;font-size:22px;color:gold;">
+                        ${star <= book.rating ? "★" : "☆"}
+                        </span>
+                    `).join("")}
                 </p>
 
                 <p>
@@ -101,6 +107,11 @@ function displayBooks() {
     });
 }
 
+function changeRating(index, rating) {
+    books[index].rating = rating;
+    saveBooks();
+    displayBooks();
+}
 
 function deleteBook(index) {
     books.splice(index, 1);
@@ -121,23 +132,6 @@ function toggleRead(index) {
     displayBooks();
 }
 
-// ★評価を変更する
-function changeRating(index) {
-
-    const rating = prompt("評価を入力してください（0～5）", books[index].rating);
-
-    if (rating === null) return;
-
-    const newRating = Number(rating);
-
-    if (newRating >= 0 && newRating <= 5) {
-        books[index].rating = newRating;
-        saveBooks();
-        displayBooks();
-    } else {
-        alert("0～5の数字を入力してください。");
-    }
-}
 
 function openSettings() {
     document.getElementById("settingsModal").style.display = "block";
