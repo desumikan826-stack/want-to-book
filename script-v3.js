@@ -237,3 +237,6 @@ async function testConnection(){
     const { data, error } = await supabase.from("books").select("*");
     console.log(data);
 }
+
+const searchBtn = document.getElementById("searchBtn");
+if (searchBtn) searchBtn.addEventListener("click", searchBook);
