@@ -74,29 +74,31 @@ function displayBooks() {
             <div class="book">
                 <h3>${book.title}</h3>
                 <p>著者：${book.author}</p>
+
                 <p>
-                評価：${"★".repeat(book.rating)}${"☆".repeat(5 - book.rating)}
-                <button onclick="changeRating(${index})">評価変更</button>
-                </p>
-                購入：${book.purchased ? "購入済み" : "未購入"}
-                <button onclick="togglePurchased(${index})">
-                ${book.purchased ? "未購入に戻す" : "購入済みにする"}
-                </button>
+                    評価：${"★".repeat(book.rating)}${"☆".repeat(5 - book.rating)}
+                    <button onclick="changeRating(${index})">評価変更</button>
                 </p>
 
                 <p>
-                読書：${book.read ? "読了済み" : "未読"}
-                <button onclick="toggleRead(${index})">
-                ${book.read ? "未読に戻す" : "読了済みにする"}
-                </button>
+                    購入：${book.purchased ? "購入済み" : "未購入"}
+                    <button onclick="togglePurchased(${index})">
+                        ${book.purchased ? "未購入に戻す" : "購入済みにする"}
+                    </button>
                 </p>
-                    <button onclick="deleteBook(${index})">削除</button>
+
+                <p>
+                    読書：${book.read ? "読了済み" : "未読"}
+                    <button onclick="toggleRead(${index})">
+                        ${book.read ? "未読に戻す" : "読了済みにする"}
+                    </button>
+                </p>
+
+                <button onclick="deleteBook(${index})">削除</button>
             </div>
             `;
         }
-
     });
-
 }
 
 
