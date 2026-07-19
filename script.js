@@ -1,10 +1,14 @@
-// 1行目はこれだけにします（重複を消した状態）
-const supabase = window.supabaseConnection; 
+// 💡 一番安全な初期化方法（これなら絶対に二重宣言エラーになりません）
+if (!window.globalSupabase) {
+    const supabaseUrl = "https://eqgyfkxiecozflnbypkl.supabase.co";
+    const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
+    window.globalSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+}
+const supabase = window.globalSupabase;
 
 let books = [];
 
-console.log("最新版script.js");
-console.log("script.js 読み込み成功");
+console.log("最新版script.js 読み込み成功");
 
 function saveBooks() {
     localStorage.setItem("books", JSON.stringify(books));
