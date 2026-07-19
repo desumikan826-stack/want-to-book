@@ -1,7 +1,5 @@
 const supabase = window.supabaseConnection; 
 
-let books = [];
-
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
 
