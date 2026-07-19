@@ -108,12 +108,13 @@ function displayStack() {
 
     stackView.innerHTML = "";
 
-    const unreadBooks = books.filter(book => !book.read);
+    const unreadBooks =
+        books.filter(book => !book.read);
 
-    unreadBooks.forEach(() => {
+    unreadBooks.forEach(book => {
 
         stackView.innerHTML += `
-            <div class="book-stack"></div>
+            ${book.image || ''}
         `;
 
     });
