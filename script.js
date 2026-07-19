@@ -242,17 +242,19 @@ function displaySearchResult(items) {
 
 function addRakutenBook(info) {
 
-    books.push({
+    console.log("登録ボタン押された");
+    alert("登録ボタン押された");
 
+    books.push({
         title: info.title,
         author: info.author,
         image: info.largeImageUrl,
         rating: 0,
         purchased: false,
         read: false
-
     });
 
     saveBooks();
     displayBooks();
 }
+
