@@ -1,4 +1,4 @@
-const supabase = window.supabase.createClient(
+const db = window.supabase.createClient(
     supabaseUrl,
     supabaseKey
 );
@@ -21,7 +21,7 @@ function saveBooks() {
 
 async function loadBooks() {
 
-    const { data, error } = await supabase
+    const { data, error } = await db
         .from("books")
         .select("*");
 
@@ -57,7 +57,7 @@ async function addBook() {
 
     if (title === "") return;
 
-    await supabase
+    await db
     .from("books")
     .insert({
 
@@ -315,7 +315,7 @@ function addRakutenBook(info) {
     async function testConnection(){
 
         const { data, error } =
-        await supabase.from("books").select("*");
+        await db.from("books").select("*");
 
         console.log(data);
         console.log(error);
