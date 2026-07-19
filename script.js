@@ -1,19 +1,16 @@
+// 1行目はこれだけにします（重複を消した状態）
 const supabase = window.supabaseConnection; 
+
+let books = [];
 
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
-
-
-
-
-let books = [];
 
 function saveBooks() {
     localStorage.setItem("books", JSON.stringify(books));
 }
 
 async function loadBooks() {
-
     const { data, error } = await supabase
         .from("books")
         .select("*");
@@ -33,16 +30,13 @@ let currentRating = 0;
 
 function setRating(rating) {
     currentRating = rating;
-
     const stars = document.querySelectorAll("#rating span");
-
     stars.forEach((star, index) => {
         star.textContent = index < rating ? "★" : "☆";
     });
 }
 
 async function addBook() {
-
     const title = document.getElementById("title").value;
     const author = document.getElementById("author").value;
     const purchased = document.getElementById("purchased").checked;
@@ -53,17 +47,15 @@ async function addBook() {
     await supabase
     .from("books")
     .insert({
+        title: title,
+        author: author,
+        image: "",
+        rating: currentRating,
+        purchased: purchased,
+        read: read
+    });
 
-        title:title,
-        author:author,
-        image:"",
-        rating:currentRating,
-        purchased:purchased,
-        read:read
-
-});
     await loadBooks();
-    
 
     document.getElementById("title").value = "";
     document.getElementById("author").value = "";
@@ -74,7 +66,6 @@ async function addBook() {
 }
 
 function displayBooks() {
-
     const list = document.getElementById("bookList");
     const search = document.getElementById("search");
 
@@ -84,52 +75,38 @@ function displayBooks() {
     list.innerHTML = "";
 
     books.forEach((book, index) => {
-
         if (
             book.title.toLowerCase().includes(keyword) ||
             book.author.toLowerCase().includes(keyword)
         ) {
-
             list.innerHTML += `
             <div class="book">
-
-                <img src="${book.image || ""}"
-                    alt="表紙"
-                    class="book-image">
-
+                <img src="${book.image || ""}" alt="表紙" class="book-image">
                 <div class="book-info">
-
                     <h3>${book.title}</h3>
                     <p>著者：${book.author}</p>
-
                     <p>
                         評価：
                         ${book.rating === 0 ? "<span class='no-rating'>未評価</span>" : ""}
                         ${[1,2,3,4,5].map(star => `
-                            <span
-                            onclick="changeRating(${index}, ${star})"
-                            class="star">
+                            <span onclick="changeRating(${index}, ${star})" class="star">
                             ${star <= book.rating ? "★" : "☆"}
                             </span>
                         `).join("")}
                     </p>
-
                     <p>
                         購入：${book.purchased ? "購入済み" : "未購入"}
                         <button onclick="togglePurchased(${index})">
                             ${book.purchased ? "未購入に戻す" : "購入済みにする"}
                         </button>
                     </p>
-
                     <p>
                         読書：${book.read ? "読了済み" : "未読"}
                         <button onclick="toggleRead(${index})">
                             ${book.read ? "未読に戻す" : "読了済みにする"}
                         </button>
                     </p>
-
                     <button onclick="deleteBook(${index})">削除</button>
-
                 </div>
             </div>
             `;
@@ -138,13 +115,11 @@ function displayBooks() {
 }
 
 function changeRating(index, rating) {
-
     if (books[index].rating === rating) {
         books[index].rating = 0;
     } else {
         books[index].rating = rating;
     }
-
     saveBooks();
     displayBooks();
 }
@@ -161,13 +136,11 @@ function togglePurchased(index) {
     displayBooks();
 }
 
-
 function toggleRead(index) {
     books[index].read = !books[index].read;
     saveBooks();
     displayBooks();
 }
-
 
 function openSettings() {
     document.getElementById("settingsModal").style.display = "block";
@@ -180,33 +153,16 @@ function closeSettings() {
 displayBooks();
 
 async function searchBook() {
-
-
     const input = document.getElementById("bookSearch");
-
     if (!input) return;
 
     const keyword = input.value;
-
     if (keyword === "") return;
 
     try {
-
-        
         const APPLICATION_ID = "246b99d2-5d3f-4cf5-8b60-2ac664b77f76";
         const ACCESS_KEY = "pk_Wg4VWiSclMvhhFtEZ244i6Rg6xuZWGY1X0HoxQRKe7d";
 
-
-        
-        console.log("APPLICATION_ID:", APPLICATION_ID);
-        console.log("length:", APPLICATION_ID.length);
-        
-        console.log("ACCESS_KEY:", ACCESS_KEY);
-        console.log("length:", ACCESS_KEY.length);
-
-        
-        
-        
         const url =
             "https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404" +
             "?applicationId=" + encodeURIComponent(APPLICATION_ID) +
@@ -214,57 +170,32 @@ async function searchBook() {
             "&title=" + encodeURIComponent(keyword) +
             "&format=json";
 
-        console.log("APPLICATION_ID =", APPLICATION_ID);
-        console.log("ACCESS_KEY =", ACCESS_KEY);
-
-        console.log("URL =", url);
-
-        console.log(url);
-
-        
         const response = await fetch(url, {
-            headers: {
-                "accessKey": ACCESS_KEY
-            }
+            headers: { "accessKey": ACCESS_KEY }
         });
-
-        console.log(response.status);
         
         const data = await response.json();
 
         if (!response.ok) {
-            console.log(data);
-            alert(JSON.stringify(data));
             return;
         }
 
-        console.log(data);
-
-        alert("検索件数: " + data.Items.length);
-
         displaySearchResult(data.Items);
-
     } catch (e) {
         console.error(e);
-        alert("エラー: " + e.message);
     }
 }
 
 function displaySearchResult(items) {
-
     const result = document.getElementById("searchResult");
-
     if (!result) return;
 
     result.innerHTML = "";
 
     items.forEach((item) => {
-
         const info = item.Item;
-
         const div = document.createElement("div");
         div.className = "book";
-
         div.innerHTML = `
             <img src="${info.largeImageUrl || ""}">
             <h3>${info.title}</h3>
@@ -283,35 +214,21 @@ function displaySearchResult(items) {
 }
 
 function addRakutenBook(info) {
-
-    console.log("登録ボタン押された");
-    console.log(info);
-
     books.push({
-
         title: info.title,
         author: info.author,
         image: info.largeImageUrl,
         rating: 0,
         purchased: false,
         read: false
-
     });
-
-    console.log(books);
 
     saveBooks();
     displayBooks();
-
     testConnection();
 
     async function testConnection(){
-
-        const { data, error } =
-        await supabase.from("books").select("*");
-
+        const { data, error } = await supabase.from("books").select("*");
         console.log(data);
-        console.log(error);
-
-}
+    }
 }
