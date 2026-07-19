@@ -137,14 +137,18 @@ nav a:hover{
     margin:30px 0;
 }
 
-.book-stack{
-    width:140px;
-    height:20px;
-    border-radius:4px;
-    border:1px solid #333;
-    margin-top:-10px;
-    box-shadow:0 2px 5px rgba(0,0,0,.3);
-    transition:.2s;
+.book-stack{ 
+    width:140px; 
+    height:22px; 
+    /* 重なり具合（-5pxくらいがおすすめ） */ 
+    margin-top:-5px; /* 本らしい角丸 */ 
+    border-radius:3px; /* 枠線 */ 
+    border:1px solid #444; /* 本の立体感 */ 
+    box-shadow: 
+    0 2px 4px rgba(0,0,0,0.25), 
+    inset 0 2px 0 rgba(255,255,255,0.35), 
+    inset 0 -2px 0 rgba(0,0,0,0.15); 
+    transition:0.2s; 
 }
 
 
@@ -158,5 +162,14 @@ nav a:hover{
 
 
 .book-stack:hover{
-    transform:translateY(-5px);
+    transform:translateY(-6px);
+}
+
+.book-stack::before{
+    content:"";
+    display:block;
+    width:8px;
+    height:100%;
+    background:rgba(255,255,255,0.3);
+    border-right:1px solid rgba(0,0,0,0.2);
 }
