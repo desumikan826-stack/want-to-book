@@ -74,8 +74,10 @@ function displayBooks() {
             <div class="book">
                 <h3>${book.title}</h3>
                 <p>著者：${book.author}</p>
-                <p>評価：${"★".repeat(book.rating)}${"☆".repeat(5 - book.rating)}</p>
                 <p>
+                評価：${"★".repeat(book.rating)}${"☆".repeat(5 - book.rating)}
+                <button onclick="changeRating(${index})">評価変更</button>
+                </p>
                 購入：${book.purchased ? "購入済み" : "未購入"}
                 <button onclick="togglePurchased(${index})">
                 ${book.purchased ? "未購入に戻す" : "購入済みにする"}
@@ -115,6 +117,24 @@ function toggleRead(index) {
     books[index].read = !books[index].read;
     saveBooks();
     displayBooks();
+}
+
+// ★評価を変更する
+function changeRating(index) {
+
+    const rating = prompt("評価を入力してください（0～5）", books[index].rating);
+
+    if (rating === null) return;
+
+    const newRating = Number(rating);
+
+    if (newRating >= 0 && newRating <= 5) {
+        books[index].rating = newRating;
+        saveBooks();
+        displayBooks();
+    } else {
+        alert("0～5の数字を入力してください。");
+    }
 }
 
 function openSettings() {
@@ -251,5 +271,3 @@ function addRakutenBook(info) {
     saveBooks();
     displayBooks();
 }
-
-
