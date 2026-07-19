@@ -1,4 +1,5 @@
 console.log("最新版script.js");
+console.log("Hello");
 console.log("script.js 読み込み成功");
 
 let books = [];
