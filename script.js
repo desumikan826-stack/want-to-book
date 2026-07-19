@@ -1,8 +1,8 @@
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
 
-const supabaseUrl = "あなたのProject URL";
-const supabaseKey = "あなたのPublishable key";
+const supabaseUrl = "https://eqgyfkxiecozflnbypkl.supabase.co";
+const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
 
 const supabase = window.supabase.createClient(
     supabaseUrl,
@@ -15,7 +15,13 @@ function saveBooks() {
     localStorage.setItem("books", JSON.stringify(books));
 }
 
-const savedBooks = localStorage.getItem("books");
+const { data } =
+await supabase
+.from("books")
+.select("*");
+
+books = data;
+displayBooks();
 
 if (savedBooks) {
     books = JSON.parse(savedBooks);
@@ -42,16 +48,20 @@ function addBook() {
 
     if (title === "") return;
 
-    books.push({
-    title: title,
-    author: author,
-    rating: currentRating,
-    purchased: purchased,
-    read: read
-    }); 
+    await supabase
+    .from("books")
+    .insert({
 
+        title:title,
+        author:author,
+        image:"",
+        rating:currentRating,
+        purchased:purchased,
+        read:read
+
+});
     displayBooks();
-    saveBooks();
+    
 
     document.getElementById("title").value = "";
     document.getElementById("author").value = "";
