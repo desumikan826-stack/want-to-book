@@ -1,15 +1,6 @@
-const supabaseUrl = "https://eqgyfkxiecozflnbypkl.supabase.co";
-const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
+const supabase = window.supabaseConnection; 
 
-const supabase = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-);
-
-console.log(window.supabase);
-console.log(supabase);
-console.log(window.supabase);
-console.log(supabase);
+let books = [];
 
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
