@@ -271,3 +271,12 @@ window.switchTab = switchTab; // HTMLから呼べるように公開
 
 const searchBtn = document.getElementById("searchBtn");
 if (searchBtn) searchBtn.addEventListener("click", searchBook);
+
+window.searchBook = searchBook;
+window.addBook = addBook;
+window.deleteBook = deleteBook;
+window.changeRating = changeRating;
+window.togglePurchased = togglePurchased;
+window.toggleRead = toggleRead;
+window.switchTab = switchTab; // 👈 これも忘れずに！
+window.displayBooks = displayBooks;
