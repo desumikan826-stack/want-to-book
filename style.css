@@ -156,14 +156,14 @@ nav a:hover{
 
 .book-stack{
     width:120px;
+    height:auto;
+    display:block;
+
     border-radius:6px;
+    box-shadow:0 4px 8px rgba(0,0,0,0.3);
 
-    box-shadow:
-        0 4px 8px rgba(0,0,0,0.3);
-
-    margin-top:-60px;
-
-    transition:0.3s;
+    margin-top:-70px;
+    transition:.3s;
 }
 
 .book-stack:hover{
