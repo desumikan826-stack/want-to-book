@@ -237,11 +237,3 @@ async function testConnection(){
     const { data, error } = await supabase.from("books").select("*");
     console.log(data);
 }
-
-window.searchBook = searchBook;
-window.addBook = addBook;
-window.setRating = setRating;
-window.changeRating = changeRating;
-window.deleteBook = deleteBook;
-window.togglePurchased = togglePurchased;
-window.toggleRead = toggleRead;
