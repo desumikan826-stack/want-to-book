@@ -1,6 +1,14 @@
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
 
+const supabaseUrl = "あなたのProject URL";
+const supabaseKey = "あなたのPublishable key";
+
+const supabase = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+);
+
 let books = [];
 
 function saveBooks() {
@@ -282,4 +290,16 @@ function addRakutenBook(info) {
 
     saveBooks();
     displayBooks();
+
+    testConnection();
+
+    async function testConnection(){
+
+        const { data, error } =
+        await supabase.from("books").select("*");
+
+        console.log(data);
+        console.log(error);
+
+}
 }
