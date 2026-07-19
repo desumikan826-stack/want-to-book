@@ -19,11 +19,51 @@ button{
 }
 
 .book{
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+
     background:white;
-    padding:15px;
-    margin:10px 0;
-    border-radius:10px;
+    padding:20px;
+    margin:15px 0;
+
+    border-radius:15px;
+    box-shadow:0 3px 8px rgba(0,0,0,.15);
 }
+
+.book-image{
+    width:120px;
+    height:auto;
+    border-radius:10px;
+    flex-shrink:0;
+}
+
+.book-info{
+    flex:1;
+}
+
+.book-info h3{
+    margin-top:0;
+    margin-bottom:10px;
+}
+
+.star{
+    font-size:24px;
+    color:gold;
+    cursor:pointer;
+    user-select:none;
+}
+
+.star:hover{
+    transform:scale(1.2);
+}
+
+.no-rating{
+    color:#999;
+    margin-right:8px;
+    font-size:14px;
+}
+
 .search {
     margin-bottom: 20px;
 }

@@ -72,36 +72,45 @@ function displayBooks() {
 
             list.innerHTML += `
             <div class="book">
-                <h3>${book.title}</h3>
-                <p>著者：${book.author}</p>
 
-                <p>
-                    評価：
-                    ${book.rating === 0 ? "<span style='color:gray;'>評価なし</span>" : ""}
-                    ${[1,2,3,4,5].map(star => `
-                        <span
-                        onclick="changeRating(${index}, ${star})"
-                        style="cursor:pointer;font-size:22px;color:gold;">
-                        ${star <= book.rating ? "★" : "☆"}
-                        </span>
-                    `).join("")}
-                </p>
+                <img src="${book.image || ""}"
+                    alt="表紙"
+                    class="book-image">
 
-                <p>
-                    購入：${book.purchased ? "購入済み" : "未購入"}
-                    <button onclick="togglePurchased(${index})">
-                        ${book.purchased ? "未購入に戻す" : "購入済みにする"}
-                    </button>
-                </p>
+                <div class="book-info">
 
-                <p>
-                    読書：${book.read ? "読了済み" : "未読"}
-                    <button onclick="toggleRead(${index})">
-                        ${book.read ? "未読に戻す" : "読了済みにする"}
-                    </button>
-                </p>
+                    <h3>${book.title}</h3>
+                    <p>著者：${book.author}</p>
 
-                <button onclick="deleteBook(${index})">削除</button>
+                    <p>
+                        評価：
+                        ${book.rating === 0 ? "<span class='no-rating'>未評価</span>" : ""}
+                        ${[1,2,3,4,5].map(star => `
+                            <span
+                            onclick="changeRating(${index}, ${star})"
+                            class="star">
+                            ${star <= book.rating ? "★" : "☆"}
+                            </span>
+                        `).join("")}
+                    </p>
+
+                    <p>
+                        購入：${book.purchased ? "購入済み" : "未購入"}
+                        <button onclick="togglePurchased(${index})">
+                            ${book.purchased ? "未購入に戻す" : "購入済みにする"}
+                        </button>
+                    </p>
+
+                    <p>
+                        読書：${book.read ? "読了済み" : "未読"}
+                        <button onclick="toggleRead(${index})">
+                            ${book.read ? "未読に戻す" : "読了済みにする"}
+                        </button>
+                    </p>
+
+                    <button onclick="deleteBook(${index})">削除</button>
+
+                </div>
             </div>
             `;
         }
