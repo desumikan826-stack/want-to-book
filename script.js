@@ -1,16 +1,20 @@
-db = window.supabase.createClient(
+const supabaseUrl = "https://eqgyfkxiecozflnbypkl.supabase.co";
+const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
+
+const supabase = window.supabase.createClient(
     supabaseUrl,
     supabaseKey
 );
 
 console.log(window.supabase);
 console.log(supabase);
+console.log(window.supabase);
+console.log(supabase);
 
 console.log("最新版script.js");
 console.log("script.js 読み込み成功");
 
-const supabaseUrl = "https://eqgyfkxiecozflnbypkl.supabase.co";
-const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
+
 
 
 let books = [];
@@ -21,7 +25,7 @@ function saveBooks() {
 
 async function loadBooks() {
 
-    const { data, error } = await db
+    const { data, error } = await supabase
         .from("books")
         .select("*");
 
@@ -57,7 +61,7 @@ async function addBook() {
 
     if (title === "") return;
 
-    await db
+    await supabase
     .from("books")
     .insert({
 
@@ -315,7 +319,7 @@ function addRakutenBook(info) {
     async function testConnection(){
 
         const { data, error } =
-        await db.from("books").select("*");
+        await supabase.from("books").select("*");
 
         console.log(data);
         console.log(error);
