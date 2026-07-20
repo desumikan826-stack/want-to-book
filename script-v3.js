@@ -422,24 +422,31 @@ async function searchSRU(keyword, searchType) {
     const url =
         `https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&query=${index}="${encodeURIComponent(keyword)}"&maximumRecords=10`;
 
-    console.log(url);
-
     const response = await fetch(url);
     const xml = await response.text();
 
-    console.log(xml);
-}
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xml, "text/xml");
 
-async function searchNDL(keyword, searchType) {
+    const records = xmlDoc.getElementsByTagName("record");
 
-    const url =
-        `https://ndlsearch.ndl.go.jp/api/opensearch?${searchType}=${encodeURIComponent(keyword)}`;
+    for (const record of records) {
 
-    const response = await fetch(url);
+        const data = record.getElementsByTagName("recordData")[0];
 
-    const xml = await response.text();
+        const doc = parser.parseFromString(data.textContent, "text/xml");
 
-    console.log(xml);
+        const title =
+            doc.getElementsByTagName("dc:title")[0]?.textContent || "";
+
+        const author =
+            doc.getElementsByTagName("dc:creator")[0]?.textContent || "";
+
+        const publisher =
+            doc.getElementsByTagName("dc:publisher")[0]?.textContent || "";
+
+        console.log(title, author, publisher);
+    }
 }
 
 function displaySearchResult(items) {
