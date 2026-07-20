@@ -434,8 +434,6 @@ async function searchSRU(keyword, searchType) {
     const xml = await response.text();
 
     console.log(xml);
-    const response = await fetch(url);
-    const xml = await response.text();
 
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xml, "text/xml");
@@ -444,21 +442,29 @@ async function searchSRU(keyword, searchType) {
 
     for (const record of records) {
 
-        const data = record.getElementsByTagName("recordData")[0];
+    const data = record.getElementsByTagName("recordData")[0];
 
-        const doc = parser.parseFromString(data.textContent, "text/xml");
+    const doc = parser.parseFromString(data.textContent, "text/xml");
 
-        const title =
-            doc.getElementsByTagName("dc:title")[0]?.textContent || "";
+    const title =
+        doc.getElementsByTagName("dc:title")[0]?.textContent || "";
 
-        const author =
-            doc.getElementsByTagName("dc:creator")[0]?.textContent || "";
+    const author =
+        doc.getElementsByTagName("dc:creator")[0]?.textContent || "";
 
-        const publisher =
-            doc.getElementsByTagName("dc:publisher")[0]?.textContent || "";
+    const publisher =
+        doc.getElementsByTagName("dc:publisher")[0]?.textContent || "";
 
-        console.log(title, author, publisher);
-    }
+    const div = document.createElement("div");
+    div.className = "book";
+
+    div.innerHTML = `
+        <h3>${title}</h3>
+        <p>著者：${author}</p>
+        <p>出版社：${publisher}</p>
+    `;
+
+    result.appendChild(div);
 }
 
 function displaySearchResult(items) {
