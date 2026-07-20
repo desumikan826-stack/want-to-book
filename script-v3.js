@@ -318,10 +318,11 @@ signinBtn.addEventListener("click",async()=>{
 
         location.href="index.html";
 
-    }catch(e){
-
-        document.getElementById("auth-message").textContent=e.message;
-
+    }
+    catch(e){
+        console.error(e);
+        alert(e.message);
+        document.getElementById("auth-message").textContent = e.message;
     }
 
 });
