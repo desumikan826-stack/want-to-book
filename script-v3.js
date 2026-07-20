@@ -333,6 +333,7 @@ async function addRakutenBook(info) {
             purchased: purchased,
             read: read
         });
+        console.log(error);
 
     await loadBooks();
 }
