@@ -425,15 +425,10 @@ async function searchSRU(keyword, searchType) {
         `&query=${index}="${encodeURIComponent(keyword)}"` +
         `&maximumRecords=10`;
 
-    console.log(url);
-
     const response = await fetch(url);
-
-    console.log(response.status);
 
     const xml = await response.text();
 
-    console.log(xml);
 
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xml, "text/xml");
