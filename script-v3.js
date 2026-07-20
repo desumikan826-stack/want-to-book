@@ -400,12 +400,34 @@ async function searchBook() {
 
         } else {
 
-            await searchNDL(keyword, searchType);
+            await searchSRU(keyword, searchType);
 
         }
     } catch (e) {
         console.error(e);
     }
+}
+
+async function searchSRU(keyword, searchType) {
+
+    const indexMap = {
+        title: "title",
+        author: "creator",
+        publisher: "publisher",
+        isbn: "isbn"
+    };
+
+    const index = indexMap[searchType];
+
+    const url =
+        `https://ndlsearch.ndl.go.jp/api/sru?operation=searchRetrieve&version=1.2&query=${index}="${encodeURIComponent(keyword)}"&maximumRecords=10`;
+
+    console.log(url);
+
+    const response = await fetch(url);
+    const xml = await response.text();
+
+    console.log(xml);
 }
 
 async function searchNDL(keyword, searchType) {
