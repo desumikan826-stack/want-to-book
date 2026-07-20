@@ -220,3 +220,11 @@ nav a:hover{
 #auth-message{
     margin-top:15px;
 }
+
+#bookStats {
+    margin: 15px 0;
+    padding: 10px;
+    background: #f3f3f3;
+    border-radius: 8px;
+    font-weight: bold;
+}

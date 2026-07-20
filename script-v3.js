@@ -183,10 +183,27 @@ async function addRakutenBook(info) {
 function displayBooks() {
     const list = document.getElementById("bookList");
     const search = document.getElementById("search");
+    const stats = document.getElementById("bookStats");
 
     if (!list || !search) return;
 
     const keyword = search.value.toLowerCase();
+
+    // 本の統計を表示
+    if (stats) {
+        const total = books.length;
+        const unread = books.filter(book => !book.read).length;
+        const read = books.filter(book => book.read).length;
+        const rate = total === 0 ? 0 : Math.round(read / total * 100);
+
+        stats.innerHTML = `
+            📚 総数：${total}冊　
+            📖 未読：${unread}冊　
+            ✅ 読了：${read}冊　
+            📊 読了率：${rate}%
+        `;
+    }
+
     list.innerHTML = "";
 
     books.forEach((book, index) => {
