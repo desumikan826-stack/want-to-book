@@ -318,15 +318,20 @@ function displaySearchResult(items) {
 
 async function addRakutenBook(info) {
 
-    await supabase
-        .from("books")
-        .insert({
-            title: info.title,
-            author: info.author,
-            image: info.largeImageUrl,
-            rating: 0,
-            purchased: false,
-            read: false
+    const {
+        data: { user },
+        } = await supabase.auth.getUser();
+
+        await supabase
+            .from("books")
+            .insert({
+            user_id: user.id,
+            title: title,
+            author: author,
+            image: "",
+            rating: currentRating,
+            purchased: purchased,
+            read: read
         });
 
     await loadBooks();
