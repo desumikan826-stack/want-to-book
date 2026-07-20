@@ -147,8 +147,10 @@ async function addBook() {
 
     await loadBooks();
 
+    alert("登録しました");
+
     document.getElementById("title").value = "";
-    document.getElementById("author").value = "";
+    document.getElementById("author").value = "";   
     document.getElementById("purchased").checked = false;
     document.getElementById("read").checked = false;
 
@@ -178,6 +180,8 @@ async function addRakutenBook(info) {
     console.log(error);
 
     await loadBooks();
+
+    alert("登録しました");
 }
 
 function displayBooks() {
