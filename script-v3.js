@@ -372,33 +372,52 @@ async function searchBook() {
 
     const keyword = input.value;
     const searchType = document.getElementById("searchType").value;
+    const apiType = document.getElementById("apiType").value;
     if (keyword === "") return;
 
     try {
         const APPLICATION_ID = "246b99d2-5d3f-4cf5-8b60-2ac664b77f76";
         const ACCESS_KEY = "pk_Wg4VWiSclMvhhFtEZ244i6Rg6xuZWGY1X0HoxQRKe7d";
 
-        const url =
+        if (apiType === "rakuten") {
+
+            const url =
             "https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404" +
             "?applicationId=" + encodeURIComponent(APPLICATION_ID) +
             "&accessKey=" + encodeURIComponent(ACCESS_KEY) +
             "&" + searchType + "=" + encodeURIComponent(keyword) +
             "&format=json";
 
-        const response = await fetch(url, {
-            headers: { "accessKey": ACCESS_KEY }
-        });
-        
-        const data = await response.json();
+            const response = await fetch(url, {
+                headers: { "accessKey": ACCESS_KEY }
+            });
 
-        if (!response.ok) {
-            return;
+            const data = await response.json();
+
+            if (!response.ok) return;
+
+            displaySearchResult(data.Items);
+
+        } else {
+
+            await searchNDL(keyword, searchType);
+
         }
-
-        displaySearchResult(data.Items);
     } catch (e) {
         console.error(e);
     }
+}
+
+async function searchNDL(keyword, searchType) {
+
+    const url =
+        `https://ndlsearch.ndl.go.jp/api/opensearch?${searchType}=${encodeURIComponent(keyword)}`;
+
+    const response = await fetch(url);
+
+    const xml = await response.text();
+
+    console.log(xml);
 }
 
 function displaySearchResult(items) {
