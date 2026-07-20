@@ -132,14 +132,18 @@ async function addBook() {
     const { error } = await supabase
         .from("books")
         .insert({
-            user_id: user.id,
-            title: title,
-            author: author,
-            image: "",
-            rating: currentRating,
-            purchased: purchased,
-            read: read
-        });
+        user_id: user.id,
+        title: title,
+        author: author,
+        image: "",
+        isbn: "",
+        publisher: "",
+        publish_date: "",
+        pages: 0,
+        rating: currentRating,
+        purchased: purchased,
+        read: read
+    });
 
     if (error) {
         console.error(error);
@@ -168,15 +172,18 @@ async function addRakutenBook(info) {
     const { data, error } = await supabase
         .from("books")
         .insert({
-            user_id: user.id,
-            title: info.title,
-            author: info.author,
-            image: info.largeImageUrl || "",
-            rating: 0,
-            purchased: false,
-            read: false
-        });
-
+        user_id: user.id,
+        title: info.title,
+        author: info.author,
+        image: info.largeImageUrl || "",
+        isbn: info.isbn || "",
+        publisher: info.publisherName || "",
+        publish_date: info.salesDate || "",
+        pages: 0,
+        rating: 0,
+        purchased: false,
+        read: false
+    });
     console.log(data);
     console.log(error);
 
@@ -247,6 +254,9 @@ function displayBooks() {
                 <div class="book-info">
                     <h3>${book.title}</h3>
                     <p>著者：${book.author}</p>
+                    <p>出版社：${book.publisher || "不明"}</p>
+                    <p>ページ数：${book.pages || 0}ページ</p>
+                    <p>ISBN：${book.isbn || "なし"}</p>
                     <p>
                         評価：
                         ${book.rating === 0 ? "<span class='no-rating'>未評価</span>" : ""}
