@@ -120,40 +120,27 @@ function setRating(rating) {
     });
 }
 
-async function addBook() {
-    const title = document.getElementById("title").value;
-    const author = document.getElementById("author").value;
-    const purchased = document.getElementById("purchased").checked;
-    const read = document.getElementById("read").checked;
+async function addRakutenBook(info) {
 
-    if (title === "") return;
-
-    await supabase
-    .from("books")
     const {
-    data: { user },
-} = await supabase.auth.getUser();
+        data: { user },
+    } = await supabase.auth.getUser();
 
-    await supabase
-        .from("books")
+    const { data, error } = await supabase
         .insert({
             user_id: user.id,
-            title: title,
-            author: author,
-            image: "",
-            rating: currentRating,
-            purchased: purchased,
-            read: read
+            title: info.title,
+            author: info.author,
+            image: info.largeImageUrl || "",
+            rating: 0,
+            purchased: false,
+            read: false
         });
 
-    await loadBooks();
+    console.log(data);
+    console.log(error);
 
-    document.getElementById("title").value = "";
-    document.getElementById("author").value = "";
-    document.getElementById("purchased").checked = false;
-    document.getElementById("read").checked = false;
-    currentRating = 0;
-    setRating(0);
+    await loadBooks();
 }
 
 function displayBooks() {
