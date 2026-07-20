@@ -4,6 +4,7 @@ if (!window.globalSupabase) {
     const supabaseKey = "sb_publishable_3MQXaPuO9U3O_zub0LPoGg_N2pIYkIJ";
     window.globalSupabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 }
+
 const supabase = window.globalSupabase;
 let currentUser = null;
 
