@@ -87,10 +87,6 @@ let currentTab = 'all'; // 💡 今どのタブが選ばれているかを保存
 
 console.log("最新版script.js 読み込み成功");
 
-function saveBooks() {
-    localStorage.setItem("books", JSON.stringify(books));
-}
-
 async function loadBooks() {
 
     const {
@@ -245,32 +241,74 @@ function displayBooks() {
     });
 }
 
-function changeRating(index, rating) {
-    if (books[index].rating === rating) {
-        books[index].rating = 0;
-    } else {
-        books[index].rating = rating;
+async function changeRating(index, rating) {
+    const book = books[index];
+
+    const newRating = (book.rating === rating) ? 0 : rating;
+
+    const { error } = await supabase
+        .from("books")
+        .update({ rating: newRating })
+        .eq("id", book.id);
+
+    if (error) {
+        console.error(error);
+        return;
     }
-    saveBooks();
-    displayBooks();
+
+    await loadBooks();
 }
 
-function deleteBook(index) {
-    books.splice(index, 1);
-    saveBooks();
-    displayBooks();
+async function deleteBook(index) {
+    const book = books[index];
+
+    const { error } = await supabase
+        .from("books")
+        .delete()
+        .eq("id", book.id);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    await loadBooks();
 }
 
-function togglePurchased(index) {
-    books[index].purchased = !books[index].purchased;
-    saveBooks();
-    displayBooks();
+async function togglePurchased(index) {
+    const book = books[index];
+
+    const { error } = await supabase
+        .from("books")
+        .update({
+            purchased: !book.purchased
+        })
+        .eq("id", book.id);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    await loadBooks();
 }
 
-function toggleRead(index) {
-    books[index].read = !books[index].read;
-    saveBooks();
-    displayBooks();
+async function toggleRead(index) {
+    const book = books[index];
+
+    const { error } = await supabase
+        .from("books")
+        .update({
+            read: !book.read
+        })
+        .eq("id", book.id);
+
+    if (error) {
+        console.error(error);
+        return;
+    }
+
+    await loadBooks();
 }
 
 function openSettings() {
