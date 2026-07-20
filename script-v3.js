@@ -326,6 +326,7 @@ async function searchBook() {
     if (!input) return;
 
     const keyword = input.value;
+    const searchType = document.getElementById("searchType").value;
     if (keyword === "") return;
 
     try {
@@ -336,7 +337,7 @@ async function searchBook() {
             "https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404" +
             "?applicationId=" + encodeURIComponent(APPLICATION_ID) +
             "&accessKey=" + encodeURIComponent(ACCESS_KEY) +
-            "&title=" + encodeURIComponent(keyword) +
+            "&" + searchType + "=" + encodeURIComponent(keyword) +
             "&format=json";
 
         const response = await fetch(url, {
