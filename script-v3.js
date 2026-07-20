@@ -132,12 +132,18 @@ async function loadBooks() {
     displayBooks();
 }
 
+// setRating関数の定義
+function setRating(rating) {
+  // currentRatingの更新、UIの星の表示切り替えなど
+}
+
 // ✅ addBook: user_idを追加して登録
 async function addBook() {
     if (!currentUser) return; // ログインしていなければ登録しない
 
     const title = document.getElementById("title").value;
-    // ...
+    const author = document.getElementById("author").value;
+    // 他の入力項目の値も取得
 
     if (title === "") return;
 
@@ -145,19 +151,69 @@ async function addBook() {
     .from("books")
     .insert({
         title: title,
-        // ...他の項目
+        author: author,
+        // rating, purchased, read など他の項目
         user_id: currentUser.id // 💡 ログインユーザーのIDを追加
     });
 
     await loadBooks();
-    // ...
+    // フォームのクリア
 }
 
-// addRakutenBook も同様に修正
+// addRakutenBook 
+async function addRakutenBook(info) {
+    if (!currentUser) return;
 
-// changeRating, deleteBook, toggle... は saveBooks()を呼ばないように修正
+    await supabase
+    .from("books")
+    .insert({
+        title: info.title,
+        author: info.author,
+        image: info.largeImageUrl,
+        rating: 0,
+        purchased: false,
+        read: false,
+        user_id: currentUser.id // 💡 user_idを追加
+    });
 
-// displayBooks, displaySearchResult... はcurrentUserのチェックを追加
+    await loadBooks();
+}
+
+// changeRating
+function changeRating(index, rating) {
+    if (!currentUser) return;
+    // books[index].rating = rating; など
+    // saveBooks()を呼ばないように
+    displayBooks();
+}
+
+// deleteBook
+async function deleteBook(index) {
+    if (!currentUser) return;
+    // books.splice(index, 1);
+    // saveBooks()を呼ばないように
+    displayBooks();
+}
+
+// togglePurchased
+function togglePurchased(index) {
+    if (!currentUser) return;
+    // books[index].purchased = !books[index].purchased;
+    // saveBooks()を呼ばないように
+    displayBooks();
+}
+
+// toggleRead
+function toggleRead(index) {
+    if (!currentUser) return;
+    // books[index].read = !books[index].read;
+    // saveBooks()を呼ばないように
+    displayBooks();
+}
+
+// openSettings, closeSettings, displayBooks... 中身は適宜
+
+// searchBook, displaySearchResult...
 
 // switchTab...
 
