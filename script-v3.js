@@ -376,29 +376,21 @@ async function searchBook() {
     if (keyword === "") return;
 
     try {
-        const APPLICATION_ID = "246b99d2-5d3f-4cf5-8b60-2ac664b77f76";
-        const ACCESS_KEY = "pk_Wg4VWiSclMvhhFtEZ244i6Rg6xuZWGY1X0HoxQRKe7d";
+    if (apiType === "rakuten") {
 
-        if (apiType === "rakuten") {
+        // APIキーはクライアントに置かず、Supabase Edge Function経由でRakutenを呼び出す
+        const { data, error } = await supabase.functions.invoke("rakuten-search", {
+            body: { keyword, searchType },
+        });
 
-            const url =
-            "https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404" +
-            "?applicationId=" + encodeURIComponent(APPLICATION_ID) +
-            "&accessKey=" + encodeURIComponent(ACCESS_KEY) +
-            "&" + searchType + "=" + encodeURIComponent(keyword) +
-            "&format=json";
+        if (error) {
+            console.error(error);
+            return;
+        }
 
-            const response = await fetch(url, {
-                headers: { "accessKey": ACCESS_KEY }
-            });
+        displaySearchResult(data.Items);
 
-            const data = await response.json();
-
-            if (!response.ok) return;
-
-            displaySearchResult(data.Items);
-
-        } else {
+    } else {
 
             await searchSRU(keyword, searchType);
 
