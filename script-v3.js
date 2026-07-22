@@ -241,14 +241,6 @@ function displayBooks() {
         📘 読書中：${reading}冊　
         ✅ 読了：${finished}冊　
         📊 読了率：${rate}%
-`;
-        const rate = total === 0 ? 0 : Math.round(read / total * 100);
-
-        stats.innerHTML = `
-            📚 総数：${total}冊　
-            📖 未読：${unread}冊　
-            ✅ 読了：${read}冊　
-            📊 読了率：${rate}%
         `;
     }
 
