@@ -8,6 +8,17 @@ if (!window.globalSupabase) {
 const supabase = window.globalSupabase;
 let currentUser = null;
 
+// 💡 XSS対策：ユーザー入力や外部APIの値をinnerHTMLに入れる前に必ず通す
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;",
+    }[char]));
+}
+
 async function signUp(email,password){
 
     const {error} = await supabase.auth.signUp({
@@ -62,7 +73,7 @@ async function updateUI() {
 
         if (message) {
             message.innerHTML = `
-            ようこそ、${currentUser.email} さん！<br><br>
+            ようこそ、${escapeHTML(currentUser.email)} さん！<br><br>
             上のメニューから機能を選択してください。
             `;
         }
@@ -250,13 +261,13 @@ function displayBooks() {
         if (matchesKeyword && matchesTab) {
             list.innerHTML += `
             <div class="book">
-                <img src="${book.image || ""}" alt="表紙" class="book-image">
+                <img src="${escapeHTML(book.image || "")}" alt="表紙" class="book-image">
                 <div class="book-info">
-                    <h3>${book.title}</h3>
-                    <p>著者：${book.author}</p>
-                    <p>出版社：${book.publisher || "不明"}</p>
-                    <p>ページ数：${book.pages || 0}ページ</p>
-                    <p>ISBN：${book.isbn || "なし"}</p>
+                    <h3>${escapeHTML(book.title)}</h3>
+                    <p>著者：${escapeHTML(book.author)}</p>
+                    <p>出版社：${escapeHTML(book.publisher || "不明")}</p>
+                    <p>ページ数：${escapeHTML(book.pages || 0)}ページ</p>
+                    <p>ISBN：${escapeHTML(book.isbn || "なし")}</p>
                     <p>
                         評価：
                         ${book.rating === 0 ? "<span class='no-rating'>未評価</span>" : ""}
@@ -376,21 +387,21 @@ async function searchBook() {
     if (keyword === "") return;
 
     try {
-    if (apiType === "rakuten") {
+        if (apiType === "rakuten") {
 
-        // APIキーはクライアントに置かず、Supabase Edge Function経由でRakutenを呼び出す
-        const { data, error } = await supabase.functions.invoke("rakuten-search", {
-            body: { keyword, searchType },
-        });
+            // APIキーはクライアントに置かず、Supabase Edge Function経由でRakutenを呼び出す
+            const { data, error } = await supabase.functions.invoke("rakuten-search", {
+                body: { keyword, searchType },
+            });
 
-        if (error) {
-            console.error(error);
-            return;
-        }
+            if (error) {
+                console.error(error);
+                return;
+            }
 
-        displaySearchResult(data.Items);
+            displaySearchResult(data.Items);
 
-    } else {
+        } else {
 
             await searchSRU(keyword, searchType);
 
@@ -449,17 +460,15 @@ async function searchSRU(keyword, searchType) {
     div.className = "book";
 
     div.innerHTML = `
-        <h3>${title}</h3>
-        <p>著者：${author}</p>
-        <p>出版社：${publisher}</p>
+        <h3>${escapeHTML(title)}</h3>
+        <p>著者：${escapeHTML(author)}</p>
+        <p>出版社：${escapeHTML(publisher)}</p>
     `;
 
     const button = document.createElement("button");
     button.textContent = "登録";
 
     div.appendChild(button);
-
-    result.appendChild(div);
 
     result.appendChild(div);
     }
@@ -476,11 +485,11 @@ function displaySearchResult(items) {
         const div = document.createElement("div");
         div.className = "book";
         div.innerHTML = `
-            <img src="${info.largeImageUrl || ""}">
-            <h3>${info.title}</h3>
-            <p>著者：${info.author}</p>
-            <p>発売日：${info.salesDate}</p>
-            <p>価格：${info.itemPrice}円</p>
+            <img src="${escapeHTML(info.largeImageUrl || "")}">
+            <h3>${escapeHTML(info.title)}</h3>
+            <p>著者：${escapeHTML(info.author)}</p>
+            <p>発売日：${escapeHTML(info.salesDate)}</p>
+            <p>価格：${escapeHTML(info.itemPrice)}円</p>
         `;
 
         const button = document.createElement("button");

@@ -54,13 +54,8 @@ serve(async (req) => {
     });
 
     if (!rakutenRes.ok) {
-      const rakutenErrorBody = await rakutenRes.text();
       return new Response(
-        JSON.stringify({
-          error: "Rakuten APIの呼び出しに失敗しました",
-          rakutenStatus: rakutenRes.status,
-          rakutenBody: rakutenErrorBody,
-        }),
+        JSON.stringify({ error: "Rakuten APIの呼び出しに失敗しました" }),
         { status: rakutenRes.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
