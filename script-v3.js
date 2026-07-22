@@ -99,11 +99,17 @@ let currentTab = 'all'; // 💡 今どのタブが選ばれているかを保存
 
 console.log("最新版script.js 読み込み成功");
 
-async function loadBooks() {
-
+// 💡 各所で繰り返されるユーザー取得処理をまとめたヘルパー
+async function getCurrentUser() {
     const {
         data: { user },
     } = await supabase.auth.getUser();
+    return user;
+}
+
+async function loadBooks() {
+
+    const user = await getCurrentUser();
 
     if (!user) return;
 
@@ -111,6 +117,12 @@ async function loadBooks() {
         .from("books")
         .select("*")
         .eq("user_id", user.id);
+
+    if (error) {
+        console.error(error);
+        alert("本の一覧の取得に失敗しました。もう一度お試しください。");
+        return;
+    }
 
     books = data || [];
     displayBooks();
@@ -136,9 +148,7 @@ async function addBook() {
 
     if (title === "") return;
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
 
     const { error } = await supabase
         .from("books")
@@ -158,6 +168,7 @@ async function addBook() {
 
     if (error) {
         console.error(error);
+        alert("本の登録に失敗しました。もう一度お試しください。");
         return;
     }
 
@@ -176,9 +187,7 @@ async function addBook() {
 
 async function addRakutenBook(info) {
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser();
+    const user = await getCurrentUser();
 
     const { data, error } = await supabase
         .from("books")
@@ -195,8 +204,12 @@ async function addRakutenBook(info) {
         purchased: false,
         read: false
     });
-    console.log(data);
-    console.log(error);
+
+    if (error) {
+        console.error(error);
+        alert("本の登録に失敗しました。もう一度お試しください。");
+        return;
+    }
 
     await loadBooks();
 
@@ -240,9 +253,11 @@ function displayBooks() {
         sortedBooks.sort((a, b) => a.title.localeCompare(b.title, "ja"));
     }
 
-    sortedBooks.forEach((book) => {
+    // 💡 ループ中に何度もinnerHTML+=すると描画のたびに再計算が走るため、
+    // 一旦配列にHTML文字列をためて最後にまとめて書き込む
+    const htmlParts = [];
 
-    const index = books.findIndex(b => b.id === book.id);
+    sortedBooks.forEach((book) => {
         // 💡 1. まずキーワード検索にヒットするかチェック
         const matchesKeyword = book.title.toLowerCase().includes(keyword) || 
                              book.author.toLowerCase().includes(keyword);
@@ -259,7 +274,7 @@ function displayBooks() {
 
         // 💡 両方の条件をクリアした本だけを表示する
         if (matchesKeyword && matchesTab) {
-            list.innerHTML += `
+            htmlParts.push(`
             <div class="book">
                 <img src="${escapeHTML(book.image || "")}" alt="表紙" class="book-image">
                 <div class="book-info">
@@ -272,33 +287,36 @@ function displayBooks() {
                         評価：
                         ${book.rating === 0 ? "<span class='no-rating'>未評価</span>" : ""}
                         ${[1,2,3,4,5].map(star => `
-                            <span onclick="changeRating(${index}, ${star})" class="star">
+                            <span onclick="changeRating('${book.id}', ${star})" class="star">
                             ${star <= book.rating ? "★" : "☆"}
                             </span>
                         `).join("")}
                     </p>
                     <p>
                         購入：${book.purchased ? "購入済み" : "未購入"}
-                        <button onclick="togglePurchased(${index})">
+                        <button onclick="togglePurchased('${book.id}')">
                             ${book.purchased ? "未購入に戻す" : "購入済みにする"}
                         </button>
                     </p>
                     <p>
                         読書：${book.read ? "読了済み" : "未読"}
-                        <button onclick="toggleRead(${index})">
+                        <button onclick="toggleRead('${book.id}')">
                             ${book.read ? "未読に戻す" : "読了済みにする"}
                         </button>
                     </p>
-                    <button onclick="deleteBook(${index})">削除</button>
+                    <button onclick="deleteBook('${book.id}')">削除</button>
                 </div>
             </div>
-            `;
+            `);
         }
     });
+
+    list.innerHTML = htmlParts.join("");
 }
 
-async function changeRating(index, rating) {
-    const book = books[index];
+async function changeRating(bookId, rating) {
+    const book = books.find(b => String(b.id) === String(bookId));
+    if (!book) return;
 
     const newRating = (book.rating === rating) ? 0 : rating;
 
@@ -309,14 +327,16 @@ async function changeRating(index, rating) {
 
     if (error) {
         console.error(error);
+        alert("評価の更新に失敗しました。もう一度お試しください。");
         return;
     }
 
     await loadBooks();
 }
 
-async function deleteBook(index) {
-    const book = books[index];
+async function deleteBook(bookId) {
+    const book = books.find(b => String(b.id) === String(bookId));
+    if (!book) return;
 
     const { error } = await supabase
         .from("books")
@@ -325,14 +345,16 @@ async function deleteBook(index) {
 
     if (error) {
         console.error(error);
+        alert("本の削除に失敗しました。もう一度お試しください。");
         return;
     }
 
     await loadBooks();
 }
 
-async function togglePurchased(index) {
-    const book = books[index];
+async function togglePurchased(bookId) {
+    const book = books.find(b => String(b.id) === String(bookId));
+    if (!book) return;
 
     const { error } = await supabase
         .from("books")
@@ -343,14 +365,16 @@ async function togglePurchased(index) {
 
     if (error) {
         console.error(error);
+        alert("購入状態の更新に失敗しました。もう一度お試しください。");
         return;
     }
 
     await loadBooks();
 }
 
-async function toggleRead(index) {
-    const book = books[index];
+async function toggleRead(bookId) {
+    const book = books.find(b => String(b.id) === String(bookId));
+    if (!book) return;
 
     const { error } = await supabase
         .from("books")
@@ -361,6 +385,7 @@ async function toggleRead(index) {
 
     if (error) {
         console.error(error);
+        alert("読書状態の更新に失敗しました。もう一度お試しください。");
         return;
     }
 
@@ -396,6 +421,7 @@ async function searchBook() {
 
             if (error) {
                 console.error(error);
+                alert("検索に失敗しました。もう一度お試しください。");
                 return;
             }
 
@@ -501,12 +527,6 @@ function displaySearchResult(items) {
     });
 }
 
-async function testConnection(){
-    const { data, error } = await supabase.from("books").select("*");
-    console.log(data);
-}
-
-
 function switchTab(tabName) {
     currentTab = tabName; // タブの状態を更新
 
@@ -574,22 +594,22 @@ signupBtn.addEventListener("click",async()=>{
 
 }
 
-const {
-    data: { user },
-} = await supabase.auth.getUser();
+(async () => {
+    const user = await getCurrentUser();
 
-const page = location.pathname.split("/").pop();
+    const page = location.pathname.split("/").pop();
 
-if (
-    !user &&
-    (
-        page === "list.html" ||
-        page === "search.html" ||
-        page === "settings.html"
-    )
-) {
-    location.href = "login.html";
-}
+    if (
+        !user &&
+        (
+            page === "list.html" ||
+            page === "search.html" ||
+            page === "settings.html"
+        )
+    ) {
+        location.href = "login.html";
+    }
+})();
 
 window.switchTab = switchTab; // HTMLから呼べるように公開
 
@@ -602,7 +622,6 @@ window.deleteBook = deleteBook;
 window.changeRating = changeRating;
 window.togglePurchased = togglePurchased;
 window.toggleRead = toggleRead;
-window.switchTab = switchTab; // 👈 これも忘れずに！
 window.displayBooks = displayBooks;
 
 const logoutBtn = document.getElementById("logoutBtn");
