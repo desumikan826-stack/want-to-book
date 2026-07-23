@@ -8,6 +8,7 @@ if (!window.globalSupabase) {
 const supabase = window.globalSupabase;
 let currentUser = null;
 
+
 // 💡 XSS対策：ユーザー入力や外部APIの値をinnerHTMLに入れる前に必ず通す
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, (char) => ({
