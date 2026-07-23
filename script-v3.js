@@ -476,6 +476,7 @@ async function fetchRakutenResults(keyword, searchType) {
     });
 }
 
+
 // NDL(国立国会図書館)APIの結果を、同じ共通の形に揃えて返す
 async function fetchNdlResults(keyword, searchType) {
     const indexMap = {
