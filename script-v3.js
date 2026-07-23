@@ -144,6 +144,7 @@ function setRating(rating) {
 async function addBook() {
     const title = document.getElementById("title").value;
     const author = document.getElementById("author").value;
+    const pages = Number(document.getElementById("pages").value) || 0;
     const purchased = document.getElementById("purchased").checked;
     const status = document.getElementById("status").value;
 
@@ -161,7 +162,7 @@ async function addBook() {
         isbn: "",
         publisher: "publisher",
         publish_date: "",
-        pages: 0,
+        pages: pages,
         rating: currentRating,
         purchased: purchased,
         status: status
