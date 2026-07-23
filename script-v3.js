@@ -133,9 +133,234 @@ async function loadBooks() {
 
     books = data || [];
     displayBooks();
+    renderSchedulePage();
 }
 
 loadBooks();
+
+const WEEKDAYS = [
+    { value: "0", label: "日曜日" },
+    { value: "1", label: "月曜日" },
+    { value: "2", label: "火曜日" },
+    { value: "3", label: "水曜日" },
+    { value: "4", label: "木曜日" },
+    { value: "5", label: "金曜日" },
+    { value: "6", label: "土曜日" },
+];
+
+function getScheduleStorageKey(userId) {
+    return `shelfio-schedule-${userId}`;
+}
+
+async function getScheduleItems() {
+    const user = await getCurrentUser();
+    if (!user) return [];
+    const raw = window.localStorage.getItem(getScheduleStorageKey(user.id));
+    try {
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+async function saveScheduleItems(items) {
+    const user = await getCurrentUser();
+    if (!user) return;
+    window.localStorage.setItem(getScheduleStorageKey(user.id), JSON.stringify(items));
+}
+
+function getWeekdayLabel(weekday) {
+    return WEEKDAYS.find((item) => item.value === String(weekday))?.label || "未設定";
+}
+
+function getDateOfWeekday(reference, weekday) {
+    const date = new Date(reference);
+    const diff = Number(weekday) - date.getDay();
+    date.setDate(date.getDate() + diff);
+    return date;
+}
+
+function getBiweeklyStartDate(item) {
+    if (item.startDate) {
+        const parsed = new Date(item.startDate);
+        if (!Number.isNaN(parsed.getTime())) {
+            return parsed;
+        }
+    }
+
+    const today = new Date();
+    const target = getDateOfWeekday(today, item.weekday);
+    if (target > today) {
+        target.setDate(target.getDate() - 7);
+    }
+    return target;
+}
+
+function isItemUpdatingToday(item) {
+    const today = new Date();
+    if (String(item.weekday) !== String(today.getDay())) return false;
+    if (item.frequency === "weekly") return true;
+
+    const startDate = getBiweeklyStartDate(item);
+    const diffDays = Math.floor((today.setHours(0, 0, 0, 0) - startDate.setHours(0, 0, 0, 0)) / (24 * 60 * 60 * 1000));
+    const weekDelta = Math.floor(diffDays / 7);
+    return weekDelta % 2 === 0;
+}
+
+function formatDateToJp(date) {
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return "未設定";
+    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+}
+
+function getNextUpdateLabel(item) {
+    const today = new Date();
+    if (isItemUpdatingToday(item)) {
+        return "今日更新です";
+    }
+
+    let nextDate = getDateOfWeekday(today, item.weekday);
+    if (nextDate < today) {
+        nextDate.setDate(nextDate.getDate() + 7);
+    }
+
+    if (item.frequency === "biweekly") {
+        const startDate = getBiweeklyStartDate(item);
+        const diffDays = Math.floor((nextDate.setHours(0, 0, 0, 0) - startDate.setHours(0, 0, 0, 0)) / (24 * 60 * 60 * 1000));
+        const weekDelta = Math.floor(diffDays / 7);
+        if (weekDelta % 2 !== 0) {
+            nextDate.setDate(nextDate.getDate() + 7);
+        }
+    }
+
+    return formatDateToJp(nextDate);
+}
+
+async function renderSchedulePage() {
+    const scheduleList = document.getElementById("scheduleList");
+    const todayUpdates = document.getElementById("todayUpdates");
+    const existingBookSelect = document.getElementById("existingBook");
+    const startDateInput = document.getElementById("scheduleStartDate");
+    const frequencySelect = document.getElementById("scheduleFrequency");
+
+    if (!scheduleList && !todayUpdates && !existingBookSelect) return;
+
+    if (existingBookSelect) {
+        existingBookSelect.innerHTML = "<option value=''>手動で入力</option>";
+        books.forEach((book) => {
+            const option = document.createElement("option");
+            option.value = book.id;
+            option.textContent = `${book.title} / ${book.author}`;
+            existingBookSelect.appendChild(option);
+        });
+    }
+
+    if (frequencySelect && startDateInput) {
+        startDateInput.closest("label").style.display = frequencySelect.value === "biweekly" ? "block" : "none";
+    }
+
+    const items = await getScheduleItems();
+    const todayItems = items.filter(isItemUpdatingToday);
+
+    if (todayUpdates) {
+        todayUpdates.innerHTML = todayItems.length
+            ? todayItems.map((item) => `
+                <div class="schedule-card">
+                    <strong>${escapeHTML(item.title)}</strong>
+                    <p>${escapeHTML(item.author)}</p>
+                    <p>${getWeekdayLabel(item.weekday)}・${item.frequency === "weekly" ? "週刊" : "隔週"}</p>
+                    ${item.link ? `<p><a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">作品ページに移動</a></p>` : ""}
+                </div>
+            `).join("")
+            : "<p>今日更新の作品はまだありません。</p>";
+    }
+
+    if (scheduleList) {
+        if (!items.length) {
+            scheduleList.innerHTML = "<p>まだ更新スケジュールが登録されていません。</p>";
+            return;
+        }
+
+        scheduleList.innerHTML = items.map((item) => `
+            <div class="schedule-card">
+                <div class="schedule-card-header">
+                    <strong>${escapeHTML(item.title)}</strong>
+                    <button class="small-button" onclick="deleteScheduleItem('${item.id}')">削除</button>
+                </div>
+                <p>${escapeHTML(item.author)}</p>
+                <p>更新頻度：${item.frequency === "weekly" ? "週刊" : "隔週"}</p>
+                <p>更新曜日：${getWeekdayLabel(item.weekday)}</p>
+                ${item.frequency === "biweekly" ? `<p>隔週スタート：${formatDateToJp(item.startDate)}</p>` : ""}
+                <p>次回更新：${getNextUpdateLabel(item)}</p>
+                ${item.link ? `<p><a href="${escapeHTML(item.link)}" target="_blank" rel="noopener">作品ページへ</a></p>` : ""}
+            </div>
+        `).join("");
+    }
+}
+
+async function addScheduleItem() {
+    const title = document.getElementById("scheduleTitle")?.value.trim();
+    const author = document.getElementById("scheduleAuthor")?.value.trim();
+    const link = document.getElementById("scheduleLink")?.value.trim();
+    const frequency = document.getElementById("scheduleFrequency")?.value;
+    const weekday = document.getElementById("scheduleWeekday")?.value;
+    const startDate = document.getElementById("scheduleStartDate")?.value;
+    const existingBook = document.getElementById("existingBook")?.value;
+
+    if (!title || !weekday) {
+        alert("タイトルと更新曜日を設定してください。");
+        return;
+    }
+
+    const item = {
+        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        title,
+        author,
+        link,
+        frequency,
+        weekday,
+        startDate: frequency === "biweekly" ? (startDate || getDateOfWeekday(new Date(), weekday).toISOString().slice(0, 10)) : "",
+        bookId: existingBook || null,
+    };
+
+    const items = await getScheduleItems();
+    items.push(item);
+    await saveScheduleItems(items);
+    renderSchedulePage();
+    alert("更新スケジュールを登録しました。");
+}
+
+async function deleteScheduleItem(itemId) {
+    const items = await getScheduleItems();
+    const updated = items.filter((item) => item.id !== itemId);
+    await saveScheduleItems(updated);
+    renderSchedulePage();
+}
+
+function handleExistingBookChange() {
+    const bookId = document.getElementById("existingBook")?.value;
+    const titleInput = document.getElementById("scheduleTitle");
+    const authorInput = document.getElementById("scheduleAuthor");
+    if (!titleInput || !authorInput) return;
+    if (!bookId) {
+        titleInput.value = "";
+        authorInput.value = "";
+        return;
+    }
+    const book = books.find((item) => String(item.id) === String(bookId));
+    if (book) {
+        titleInput.value = book.title;
+        authorInput.value = book.author;
+    }
+}
+
+function handleFrequencyChange() {
+    const frequencySelect = document.getElementById("scheduleFrequency");
+    const startDateLabel = document.getElementById("scheduleStartDate")?.closest("label");
+    if (frequencySelect && startDateLabel) {
+        startDateLabel.style.display = frequencySelect.value === "biweekly" ? "block" : "none";
+    }
+}
 
 let currentRating = 0;
 
@@ -579,25 +804,24 @@ const signinBtn=document.getElementById("signinBtn");
 
 if(signinBtn){
 
-signinBtn.addEventListener("click",async()=>{
+    signinBtn.addEventListener("click",async()=>{
 
-    const email=document.getElementById("email").value;
-    const password=document.getElementById("password").value;
-    const password=document.getElementById("password").value;
-    try{
+        const email=document.getElementById("email").value;
+        const password=document.getElementById("password").value;
+        try{
 
-        await signIn(email,password);
+            await signIn(email,password);
 
-        location.href="index.html";
+            location.href="index.html";
 
-    }
-    catch(e){
-        console.error(e);
-        alert(e.message);
-        document.getElementById("auth-message").textContent = e.message;
-    }
+        }
+        catch(e){
+            console.error(e);
+            alert(e.message);
+            document.getElementById("auth-message").textContent = e.message;
+        }
 
-});
+    });
 
 }
 
@@ -605,25 +829,23 @@ const signupBtn=document.getElementById("signupBtn");
 
 if(signupBtn){
 
-signupBtn.addEventListener("click",async()=>{
+    signupBtn.addEventListener("click",async()=>{
 
-    const email=document.getElementById("email").value;
-    const password=document.getElementById("password").value;
-    const password=document.getElementById("password").value;
-    try{
+        const email=document.getElementById("email").value;
+        const password=document.getElementById("password").value;
+        try{
 
-        await signUp(email,password);
+            await signUp(email,password);
 
-        document.getElementById("auth-message").textContent=
-        "確認メールを送信しました。";
+            document.getElementById("auth-message").textContent=
+            "確認メールを送信しました。";
+        }catch(e){
 
-    }catch(e){
+            document.getElementById("auth-message").textContent=e.message;
 
-        document.getElementById("auth-message").textContent=e.message;
+        }
 
-    }
-
-});
+    });
 
 }
 
@@ -669,5 +891,156 @@ if (logoutBtn) {
         await signOut();
         location.href = "login.html";
     });
+}
+window.toggleStatusMenu = toggleStatusMenu;
+
+
+function openSettings() {
+    document.getElementById("settingsModal").style.display = "block";
+}
+
+function closeSettings() {
+    document.getElementById("settingsModal").style.display = "none";
+}
+
+displayBooks();
+
+async function searchBook() {
+    const input = document.getElementById("bookSearch");
+    if (!input) return;
+
+    const keyword = input.value;
+    const searchType = document.getElementById("searchType").value;
+    if (keyword === "") return;
+
+    const searchBtn = document.getElementById("searchBtn");
+    if (searchBtn) searchBtn.disabled = true;
+
+    try {
+        const items = await fetchRakutenResults(keyword, searchType);
+        displaySearchResult(items);
+
+    } catch (e) {
+        console.error(e);
+        alert("検索に失敗しました。少し時間を置いてもう一度お試しください。");
+    } finally {
+        if (searchBtn) searchBtn.disabled = false;
+    }
+}
+
+// 楽天ブックスAPIの結果を、共通の形（title, author, isbnなど）に揃えて返す
+async function fetchRakutenResults(keyword, searchType) {
+    const allItems = [];
+    const MAX_PAGES = 4; // 30件 × 4ページ = 最大120件取得(100件で切る)
+
+    for (let page = 1; page <= MAX_PAGES; page++) {
+        const { data, error } = await supabase.functions.invoke("rakuten-search", {
+            body: { keyword, searchType, page },
+        });
+
+        if (error) {
+            console.error(error);
+            break;
+        }
+
+        const items = (data.Items || []).map((item) => {
+            const info = item.Item;
+            return {
+                title: info.title,
+                author: info.author,
+                publisherName: info.publisherName || "",
+                salesDate: info.salesDate || "",
+                itemPrice: info.itemPrice || "",
+                largeImageUrl: info.largeImageUrl || "",
+                isbn: (info.isbn || "").replace(/-/g, ""),
+                source: "rakuten"
+            };
+        });
+
+        allItems.push(...items);
+
+        // その回の結果が30件未満なら、もうページが無いので終了
+        if (items.length < 30) break;
+
+        // 100件集まったら十分なので終了
+        if (allItems.length >= 100) break;
+
+        // 楽天APIのレート制限に配慮して少し間隔を空ける
+        if (page < MAX_PAGES) {
+            await new Promise((resolve) => setTimeout(resolve, 1100));
+        }
+    }
+
+    return allItems.slice(0, 100);
+}
+
+function displaySearchResult(items) {
+    allSearchResults = items;
+    currentSearchPage = 1;
+    renderSearchPage();
+}
+
+function renderSearchPage() {
+    const result = document.getElementById("searchResult");
+    if (!result) return;
+
+    result.innerHTML = "";
+
+    const start = (currentSearchPage - 1) * RESULTS_PER_PAGE;
+    const pageItems = allSearchResults.slice(start, start + RESULTS_PER_PAGE);
+
+    pageItems.forEach((info) => {
+        const div = document.createElement("div");
+        div.className = "book";
+        div.innerHTML = `
+            <img src="${escapeHTML(info.largeImageUrl || "")}" onerror="this.style.display='none'">
+            <h3>${escapeHTML(info.title)}</h3>
+            <p>著者：${escapeHTML(info.author)}</p>
+            ${info.salesDate ? `<p>発売日：${escapeHTML(info.salesDate)}</p>` : ""}
+            ${info.itemPrice ? `<p>価格：${escapeHTML(info.itemPrice)}円</p>` : ""}
+        `;
+
+        const button = document.createElement("button");
+        button.textContent = "登録";
+        button.onclick = () => addRakutenBook(info);
+
+        div.appendChild(button);
+        result.appendChild(div);
+    });
+
+    renderPagination();
+}
+
+function renderPagination() {
+    const result = document.getElementById("searchResult");
+    const totalPages = Math.max(1, Math.ceil(allSearchResults.length / RESULTS_PER_PAGE));
+
+    const pagerDiv = document.createElement("div");
+    pagerDiv.className = "pagination";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "← 前へ";
+    prevBtn.disabled = currentSearchPage === 1;
+    prevBtn.onclick = () => {
+        currentSearchPage--;
+        renderSearchPage();
+    };
+
+    const pageLabel = document.createElement("span");
+    pageLabel.textContent = `${currentSearchPage} / ${totalPages} ページ`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "次へ →";
+    nextBtn.disabled = currentSearchPage === totalPages;
+    nextBtn.onclick = () => {
+        currentSearchPage++;
+        renderSearchPage();
+    };
+
+    pagerDiv.appendChild(prevBtn);
+    pagerDiv.appendChild(pageLabel);
+    pagerDiv.appendChild(nextBtn);
+
+    result.appendChild(pagerDiv);
 }
 
