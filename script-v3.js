@@ -578,11 +578,10 @@ signupBtn.addEventListener("click",async()=>{
     }
 })();
 
-window.switchTab = switchTab; // HTMLから呼べるように公開
-
 const searchBtn = document.getElementById("searchBtn");
 if (searchBtn) searchBtn.addEventListener("click", searchBook);
 
+window.switchTab = switchTab; // HTMLから呼べるように公開
 window.searchBook = searchBook;
 window.addBook = addBook;
 window.deleteBook = deleteBook;
