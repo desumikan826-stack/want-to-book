@@ -584,6 +584,7 @@ function displaySearchResult(items) {
         result.appendChild(div);
     });
 }
+
 function switchTab(tabName) {
     currentTab = tabName; // タブの状態を更新
 
