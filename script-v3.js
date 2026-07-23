@@ -539,12 +539,8 @@ function displaySearchResult(items) {
 function switchTab(tabName) {
     currentTab = tabName; // タブの状態を更新
 
-    // すべてのボタンから active クラスを一度消す
-    document.getElementById("tab-all")?.classList.remove("active");
-    document.getElementById("tab-unread")?.classList.remove("active");
-    document.getElementById("tab-reading")?.classList.remove("active");
-    document.getElementById("tab-finished")?.classList.remove("active");
-
+    // すべてのタブボタンから active クラスを一度消す
+    document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
 
     // クリックされたボタンだけに active クラスをつける
     document.getElementById(`tab-${tabName}`)?.classList.add("active");

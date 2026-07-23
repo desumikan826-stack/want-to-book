@@ -172,27 +172,37 @@ nav a:hover{
 
 /* style.css の一番下などに追加 */
 .tabs {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
+    display: inline-flex;
+    gap: 4px;
+    margin: 0 auto 20px;
+    padding: 4px;
+    background: #e9edf2;
+    border-radius: 999px;
     justify-content: center;
+    width: fit-content;
 }
 
 .tab-btn {
-    padding: 8px 16px;
-    border: 1px solid #ccc;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    border-radius: 4px;
+    padding: 8px 18px;
+    border: none;
+    background: transparent;
+    color: #666;
     font-size: 14px;
-    transition: all 0.2s;
+    font-weight: 500;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .2s ease, color .2s ease;
+}
+
+
+.tab-btn:hover {
+    background: rgba(0,0,0,0.05);
 }
 
 /* 今選ばれているボタンの見た目 */
 .tab-btn.active {
-    background-color: #0070f3;
+    background: #0070f3;
     color: white;
-    border-color: #0070f3;
     font-weight: bold;
 }
 
