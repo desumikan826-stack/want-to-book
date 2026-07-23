@@ -301,3 +301,11 @@ nav a:hover{
 .status-menu button:hover {
     background: #f0f0f0;
 }
+
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}

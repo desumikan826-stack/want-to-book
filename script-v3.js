@@ -96,6 +96,10 @@ async function updateUI() {
 updateUI();
 
 let books = [];
+// 検索結果のページング用
+let allSearchResults = [];
+let currentSearchPage = 1;
+const RESULTS_PER_PAGE = 10;
 let currentTab = 'all'; // 💡 今どのタブが選ばれているかを保存（all, want, read）
 
 console.log("最新版script.js 読み込み成功");
@@ -446,37 +450,66 @@ async function searchBook() {
 
 // 楽天ブックスAPIの結果を、共通の形（title, author, isbnなど）に揃えて返す
 async function fetchRakutenResults(keyword, searchType) {
-    const { data, error } = await supabase.functions.invoke("rakuten-search", {
-        body: { keyword, searchType },
-    });
+    const allItems = [];
+    const MAX_PAGES = 4; // 30件 × 4ページ = 最大120件取得(100件で切る)
 
-    if (error) {
-        console.error(error);
-        return [];
+    for (let page = 1; page <= MAX_PAGES; page++) {
+        const { data, error } = await supabase.functions.invoke("rakuten-search", {
+            body: { keyword, searchType, page },
+        });
+
+        if (error) {
+            console.error(error);
+            break;
+        }
+
+        const items = (data.Items || []).map((item) => {
+            const info = item.Item;
+            return {
+                title: info.title,
+                author: info.author,
+                publisherName: info.publisherName || "",
+                salesDate: info.salesDate || "",
+                itemPrice: info.itemPrice || "",
+                largeImageUrl: info.largeImageUrl || "",
+                isbn: (info.isbn || "").replace(/-/g, ""),
+                source: "rakuten"
+            };
+        });
+
+        allItems.push(...items);
+
+        // その回の結果が30件未満なら、もうページが無いので終了
+        if (items.length < 30) break;
+
+        // 100件集まったら十分なので終了
+        if (allItems.length >= 100) break;
+
+        // 楽天APIのレート制限に配慮して少し間隔を空ける
+        if (page < MAX_PAGES) {
+            await new Promise((resolve) => setTimeout(resolve, 1100));
+        }
     }
 
-    return (data.Items || []).map((item) => {
-        const info = item.Item;
-        return {
-            title: info.title,
-            author: info.author,
-            publisherName: info.publisherName || "",
-            salesDate: info.salesDate || "",
-            itemPrice: info.itemPrice || "",
-            largeImageUrl: info.largeImageUrl || "",
-            isbn: (info.isbn || "").replace(/-/g, ""),
-            source: "rakuten"
-        };
-    });
+    return allItems.slice(0, 100);
 }
 
 function displaySearchResult(items) {
+    allSearchResults = items;
+    currentSearchPage = 1;
+    renderSearchPage();
+}
+
+function renderSearchPage() {
     const result = document.getElementById("searchResult");
     if (!result) return;
 
     result.innerHTML = "";
 
-    items.forEach((info) => {
+    const start = (currentSearchPage - 1) * RESULTS_PER_PAGE;
+    const pageItems = allSearchResults.slice(start, start + RESULTS_PER_PAGE);
+
+    pageItems.forEach((info) => {
         const div = document.createElement("div");
         div.className = "book";
         div.innerHTML = `
@@ -494,6 +527,41 @@ function displaySearchResult(items) {
         div.appendChild(button);
         result.appendChild(div);
     });
+
+    renderPagination();
+}
+
+function renderPagination() {
+    const result = document.getElementById("searchResult");
+    const totalPages = Math.max(1, Math.ceil(allSearchResults.length / RESULTS_PER_PAGE));
+
+    const pagerDiv = document.createElement("div");
+    pagerDiv.className = "pagination";
+
+    const prevBtn = document.createElement("button");
+    prevBtn.textContent = "← 前へ";
+    prevBtn.disabled = currentSearchPage === 1;
+    prevBtn.onclick = () => {
+        currentSearchPage--;
+        renderSearchPage();
+    };
+
+    const pageLabel = document.createElement("span");
+    pageLabel.textContent = `${currentSearchPage} / ${totalPages} ページ`;
+
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "次へ →";
+    nextBtn.disabled = currentSearchPage === totalPages;
+    nextBtn.onclick = () => {
+        currentSearchPage++;
+        renderSearchPage();
+    };
+
+    pagerDiv.appendChild(prevBtn);
+    pagerDiv.appendChild(pageLabel);
+    pagerDiv.appendChild(nextBtn);
+
+    result.appendChild(pagerDiv);
 }
 
 function switchTab(tabName) {

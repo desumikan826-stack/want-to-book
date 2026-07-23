@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { keyword, searchType } = await req.json();
+    const { keyword, searchType, page } = await req.json();
 
     if (!keyword || !searchType) {
       return new Response(
@@ -43,6 +43,8 @@ serve(async (req) => {
       "?applicationId=" + encodeURIComponent(APPLICATION_ID) +
       "&accessKey=" + encodeURIComponent(ACCESS_KEY) +
       "&" + encodeURIComponent(searchType) + "=" + encodeURIComponent(keyword) +
+      "&hits=30" +
+      "&page=" + encodeURIComponent(page || 1) +
       "&format=json";
 
     const rakutenRes = await fetch(url, {
