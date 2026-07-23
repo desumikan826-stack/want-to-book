@@ -427,6 +427,9 @@ async function searchBook() {
     const searchType = document.getElementById("searchType").value;
     if (keyword === "") return;
 
+    const searchBtn = document.getElementById("searchBtn");
+    if (searchBtn) searchBtn.disabled = true; // 検索中は連打できないようにする
+
     try {
         // 楽天とNDLを同時に検索する
         const [rakutenItems, ndlItems] = await Promise.all([
@@ -441,7 +444,9 @@ async function searchBook() {
 
     } catch (e) {
         console.error(e);
-        alert("検索に失敗しました。もう一度お試しください。");
+        alert("検索に失敗しました。少し時間を置いてもう一度お試しください。");
+    } finally {
+        if (searchBtn) searchBtn.disabled = false; // 検索が終わったら押せるように戻す
     }
 }
 
