@@ -72,11 +72,16 @@ async function updateUI() {
 
         if (nav) nav.style.display = "flex";
 
+        const page = location.pathname.split("/").pop();
         if (message) {
-            message.innerHTML = `
-            ようこそ、${escapeHTML(currentUser.email)} さん！<br><br>
-            上のメニューから機能を選択してください。
-            `;
+            if (page === "index.html" || page === "") {
+                message.innerHTML = "";
+            } else {
+                message.innerHTML = `
+                ようこそ、${escapeHTML(currentUser.email)} さん！<br><br>
+                上のメニューから機能を選択してください。
+                `;
+            }
         }
 
     } else {
