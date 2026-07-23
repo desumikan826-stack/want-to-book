@@ -299,18 +299,18 @@ function displayBooks() {
                         </button>
                     </p>
 
-                    <div class="status-wrap">
+                    <p class="status-wrap">
                         読書状況：
                         <button class="status-current" onclick="toggleStatusMenu('${book.id}')">
                             ${book.status === "unread" ? "未読" : book.status === "reading" ? "読書中" : "読了済み"} ▾
                         </button>
 
-                        <div id="statusMenu-${book.id}" class="status-menu" style="display:none;">
+                        <span id="statusMenu-${book.id}" class="status-menu" style="display:none;">
                             <button onclick="changeStatus('${book.id}', 'unread')">未読</button>
                             <button onclick="changeStatus('${book.id}', 'reading')">読書中</button>
                             <button onclick="changeStatus('${book.id}', 'finished')">読了済み</button>
-                        </div>
-                    </div>
+                        </span>
+                    </p>
 
                     <button onclick="deleteBook('${book.id}')">削除</button>
                 </div>
