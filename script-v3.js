@@ -106,6 +106,7 @@ let allSearchResults = [];
 let currentSearchPage = 1;
 const RESULTS_PER_PAGE = 10;
 let currentTab = 'all'; // 💡 今どのタブが選ばれているかを保存（all, want, read）
+let detailBookId = null; // 💡 タップして詳細表示している本のID（nullなら一覧表示）
 
 console.log("最新版script.js 読み込み成功");
 
@@ -446,6 +447,43 @@ function handleFrequencyChange() {
     }
 }
 
+// 💡 積読危険度：未読ステータスの本について、登録からの経過日数で判定
+// 10日以内→緑、10〜30日→黄、30日超→赤
+function getTsundokuRisk(book) {
+    if (book.status !== "unread" || !book.created_at) return null;
+
+    const created = new Date(book.created_at);
+    const days = Math.floor((Date.now() - created.getTime()) / (24 * 60 * 60 * 1000));
+
+    let color = "green";
+    if (days > 30) color = "red";
+    else if (days > 10) color = "yellow";
+
+    return { color, days };
+}
+
+// 💡 今月の積読増減：
+// 増加＝今月登録されて今も未読のままの本
+// 減少＝先月以前から未読だったが、今月中に未読以外へ変わった本
+function getMonthlyTsundokuChange(bookList) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const addedThisMonth = bookList.filter((book) => {
+        if (book.status !== "unread" || !book.created_at) return false;
+        return new Date(book.created_at) >= startOfMonth;
+    }).length;
+
+    const resolvedThisMonth = bookList.filter((book) => {
+        if (book.status === "unread" || !book.created_at || !book.updated_at) return false;
+        const created = new Date(book.created_at);
+        const updated = new Date(book.updated_at);
+        return created < startOfMonth && updated >= startOfMonth;
+    }).length;
+
+    return addedThisMonth - resolvedThisMonth;
+}
+
 let currentRating = 0;
 
 function setRating(rating) {
@@ -461,6 +499,7 @@ async function addBook() {
     const author = document.getElementById("author").value;
     const purchased = document.getElementById("purchased").checked;
     const status = document.getElementById("status").value;
+    const price = Number(document.getElementById("price")?.value) || 0;
 
     if (title === "") return;
 
@@ -477,6 +516,7 @@ async function addBook() {
         publisher: "publisher",
         publish_date: "",
         pages: 0,
+        price: price,
         rating: currentRating,
         purchased: purchased,
         status: status
@@ -494,6 +534,7 @@ async function addBook() {
 
     document.getElementById("title").value = "";
     document.getElementById("author").value = "";
+    if (document.getElementById("price")) document.getElementById("price").value = "";
     document.getElementById("purchased").checked = false;
     document.getElementById("status").value = "unread";
 
@@ -516,6 +557,7 @@ async function addRakutenBook(info) {
         publisher: info.publisherName || "",
         publish_date: info.salesDate || "",
         pages: 0,
+        price: Number(info.itemPrice) || 0,
         rating: 0,
         purchased: false,
         status: "unread"
@@ -537,7 +579,14 @@ function displayBooks() {
     const search = document.getElementById("search");
     const stats = document.getElementById("bookStats");
 
-    if (!list || !search) return;
+    if (!list) return;
+
+    if (detailBookId) {
+        renderBookDetailView();
+        return;
+    }
+
+    if (!search) return;
 
     const keyword = search.value.toLowerCase();
     const sortType = document.getElementById("sortType")?.value || "none";
@@ -550,13 +599,16 @@ function displayBooks() {
         const finished = books.filter(book => book.status === "finished").length;
 
         const rate = total === 0 ? 0 : Math.round(finished / total * 100);
+        const monthlyChange = getMonthlyTsundokuChange(books);
+        const monthlyChangeLabel = monthlyChange > 0 ? `+${monthlyChange}` : `${monthlyChange}`;
 
         stats.innerHTML = `
         📚 総数：${total}冊　
         📖 未読：${unread}冊　
         📘 読書中：${reading}冊　
         ✅ 読了：${finished}冊　
-        📊 読了率：${rate}%
+        📊 読了率：${rate}%　
+        📦 積読増減(今月)：${monthlyChangeLabel}冊
         `;
     }
 
@@ -587,15 +639,19 @@ function displayBooks() {
 
     if (matchesKeyword && matchesTab) {
 
+        const risk = getTsundokuRisk(book);
+
         htmlParts.push(`
             <div class="book">
                 <img src="${escapeHTML(book.image || "")}" alt="表紙" class="book-image">
 
                 <div class="book-info">
-                    <h3>${escapeHTML(book.title)}</h3>
+                    <h3 class="book-title-link" onclick="showBookDetail('${book.id}')">${escapeHTML(book.title)}</h3>
                     <p>著者：${escapeHTML(book.author)}</p>
                     <p>出版社：${escapeHTML(book.publisher || "不明")}</p>
                     <p>ISBN：${escapeHTML(book.isbn || "なし")}</p>
+                    ${book.price ? `<p>価格：${escapeHTML(book.price)}円</p>` : ""}
+                    ${risk ? `<p><span class="risk-dot ${risk.color}" title="登録から${risk.days}日"></span>積読${risk.days}日目</p>` : ""}
 
                     <p>
                         評価：
@@ -637,6 +693,86 @@ function displayBooks() {
 });
 
     list.innerHTML = htmlParts.join("");
+}
+
+function showBookDetail(bookId) {
+    detailBookId = bookId;
+    displayBooks();
+}
+window.showBookDetail = showBookDetail;
+
+function backToList() {
+    detailBookId = null;
+    displayBooks();
+}
+window.backToList = backToList;
+
+// 💡 ISBNで楽天ブックスAPIを1件だけ検索し、あらすじ(itemCaption)を取得する
+async function fetchRakutenBookByIsbn(isbn) {
+    const { data, error } = await supabase.functions.invoke("rakuten-search", {
+        body: { keyword: isbn, searchType: "isbn", page: 1 },
+    });
+
+    if (error) {
+        console.error(error);
+        return null;
+    }
+
+    const item = (data.Items || [])[0]?.Item;
+    if (!item) return null;
+
+    return {
+        itemCaption: item.itemCaption || "",
+        itemPrice: item.itemPrice || "",
+    };
+}
+
+async function renderBookDetailView() {
+    const list = document.getElementById("bookList");
+    const book = books.find((b) => String(b.id) === String(detailBookId));
+
+    if (!list) return;
+
+    if (!book) {
+        detailBookId = null;
+        displayBooks();
+        return;
+    }
+
+    const risk = getTsundokuRisk(book);
+
+    list.innerHTML = `
+        <div class="book-detail">
+            <button class="small-button" onclick="backToList()">← 一覧に戻る</button>
+            <div class="book">
+                <img src="${escapeHTML(book.image || "")}" alt="表紙" class="book-image">
+                <div class="book-info">
+                    <h3>${escapeHTML(book.title)}</h3>
+                    <p>著者：${escapeHTML(book.author)}</p>
+                    <p>出版社：${escapeHTML(book.publisher || "不明")}</p>
+                    <p>ISBN：${escapeHTML(book.isbn || "なし")}</p>
+                    ${book.price ? `<p>価格：${escapeHTML(book.price)}円</p>` : ""}
+                    ${risk ? `<p><span class="risk-dot ${risk.color}" title="登録から${risk.days}日"></span>積読${risk.days}日目</p>` : ""}
+                    <div id="bookDetailDescription" class="book-detail-description">あらすじを読み込み中...</div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const descriptionEl = document.getElementById("bookDetailDescription");
+
+    if (!book.isbn) {
+        descriptionEl.textContent = "ISBNが登録されていないため、あらすじを取得できませんでした。";
+        return;
+    }
+
+    try {
+        const detail = await fetchRakutenBookByIsbn(book.isbn);
+        descriptionEl.textContent = detail?.itemCaption || "あらすじは見つかりませんでした。";
+    } catch (e) {
+        console.error(e);
+        descriptionEl.textContent = "あらすじの取得に失敗しました。";
+    }
 }
 
 async function changeRating(bookId, rating) {
@@ -701,7 +837,7 @@ async function togglePurchased(bookId) {
 async function changeStatus(bookId, status) {
     const { error } = await supabase
         .from("books")
-        .update({ status })
+        .update({ status, updated_at: new Date().toISOString() })
         .eq("id", bookId);
 
     if (error) {
@@ -862,6 +998,7 @@ function renderPagination() {
 
 function switchTab(tabName) {
     currentTab = tabName; // タブの状態を更新
+    detailBookId = null; // タブを切り替えたら詳細表示は解除する
 
     // すべてのタブボタンから active クラスを一度消す
     document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));

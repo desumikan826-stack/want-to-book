@@ -416,4 +416,46 @@ nav a:hover{
     margin-bottom: 0;
 }
 
+.risk-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+
+.risk-dot.green {
+    background: #34c759;
+}
+
+.risk-dot.yellow {
+    background: #ffcc00;
+}
+
+.risk-dot.red {
+    background: #ff3b30;
+}
+
+.book-title-link {
+    cursor: pointer;
+}
+
+.book-title-link:hover {
+    text-decoration: underline;
+    color: #4A90E2;
+}
+
+.book-detail {
+    grid-column: 1 / -1;
+}
+
+.book-detail .small-button {
+    margin-bottom: 15px;
+}
+
+.book-detail-description {
+    margin-top: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
 }
